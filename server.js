@@ -29,7 +29,7 @@ console.log("Listening for changes on: ", filePath);
 console.log("Runtime directory: ", runtimeDir);
 
 
-const deletFileExcept = async (dir, exception) => {
+const deleteFileExcept = async (dir, exception) => {
     try {
         const files = await fs.promises.readdir(dir);
         console.log(files);
@@ -122,9 +122,26 @@ app.get('/author', (req, res) => {
     });
 });
 
-deletFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
+deleteFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
     .then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
     .then(() => server.listen(port, () => {
         console.log(`Server listening on port: ${port}`);
         console.log(`http://localhost:${port}`)
 }));
+
+const gracefulShutdown = async () => {
+    console.log("Shutting down server...");
+    deleteFileExcept(path.resolve(runtimeDir,"public"),"socket.js")
+    .then(()=>{
+        wss.close(() => {
+            server.close(() => {
+                console.log("Server closed.");
+                process.exit(0);
+            });
+        });
+    })
+};
+
+['SIGINT', 'SIGTERM'].forEach(signal => {
+    process.on(signal, gracefulShutdown);
+});
