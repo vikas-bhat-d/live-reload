@@ -12,9 +12,9 @@ console.log("Directory:", process.execPath);
 const runtimeDir = path.join(path.dirname(process.execPath), "runtime");
 let filePath = process.argv[2]
     ? path.resolve(process.cwd(), process.argv[2]) 
-    :path.join(path.dirname(process.execPath), "pages");
+    :path.join(path.dirname(process.execPath), "runtime/pages");
 
-    
+
 console.log("Listening for changes on: ", filePath);
 console.log("Runtime directory: ", runtimeDir);
 
