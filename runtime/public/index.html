@@ -3,10 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Dynamic Routing</title>
 </head>
 <body>
-    
+    <nav>
+        <a href="/" data-link>Home</a>
+        <a href="/about" data-link>About</a>
+        <a href="/contact" data-link>Contact</a>
+    </nav>
+    <div id="app"></div>
+
+    <script>
+        function navigateTo(url) {
+            history.pushState(null, null, url);
+            router();
+        }
+
+        async function router() {
+            const routes = {
+                '/': 'home.html',
+                '/about': 'about.html',
+                '/contact': 'contact.html'
+            };
+            const path = window.location.pathname;
+            console.log(window.location);
+            console.log(window.location.pathname);
+            const app = document.getElementById('app');
+            const route = routes[path] || '404.html';
+            const response = await fetch(route);
+            const content = await response.text();
+            app.innerHTML = content;
+        }
+
+        window.addEventListener('popstate', router);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.addEventListener('click', e => {
+                if (e.target.matches('[data-link]')) {
+                    e.preventDefault();
+                    navigateTo(e.target.href);
+                }
+            });
+            router();
+        });
+    </script>
 <!--Live reload script -->
 <script src='./socket.js'></script>
 </body>

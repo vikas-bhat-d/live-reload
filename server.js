@@ -5,14 +5,24 @@ const http = require("http");
 const path = require("path");
 const fs = require("fs");
 const serveIndex = require('serve-index');
+const {program}=require("commander")
 const app = express();
 
 console.log("Directory:", process.execPath);
 
 const runtimeDir = path.join(path.dirname(process.execPath), "runtime");
-let filePath = process.argv[2]
-    ? path.resolve(process.cwd(), process.argv[2]) 
-    :path.join(path.dirname(process.execPath), "runtime/pages");
+
+program
+    .version('1.0.0')
+    .argument('[relative-path]','Relative path to watch','./')
+    .option('-p,--port <number>',"Port to listen",'3000')
+    .parse(process.argv);
+
+const options=program.opts();
+const fpath=program.args[0] || './';
+const port=parseInt(options.port);
+
+const filePath=path.resolve(process.cwd(),fpath);
 
 
 console.log("Listening for changes on: ", filePath);
@@ -114,7 +124,7 @@ app.get('/author', (req, res) => {
 
 deletFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
     .then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
-    .then(() => server.listen(3000, () => {
-        console.log("Server listening on port 3000");
-        console.log("http://localhost:3000")
-    }));
+    .then(() => server.listen(port, () => {
+        console.log(`Server listening on port: ${port}`);
+        console.log(`http://localhost:${port}`)
+}));
