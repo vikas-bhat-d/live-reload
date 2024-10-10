@@ -7,21 +7,16 @@ const fs = require("fs");
 const serveIndex = require('serve-index');
 const app = express();
 
-console.log("Directory:",process.execPath);
+console.log("Directory:", process.execPath);
 
-const runtimeDir = path.join(path.dirname(process.execPath),"runtime");
-let filePath = process.argv[2] || path.join(path.dirname(process.execPath),"pages");
+const runtimeDir = path.join(path.dirname(process.execPath), "runtime");
+let filePath = process.argv[2]
+    ? path.resolve(process.cwd(), process.argv[2]) 
+    :path.join(path.dirname(process.execPath), "pages");
+
+    
 console.log("Listening for changes on: ", filePath);
 console.log("Runtime directory: ", runtimeDir);
-
-const listFiles=async ()=>{
-    const directory=__dirname;
-    const files=await fs.promises.readdir(directory);
-    console.log(files);
-}
-
-console.log("reading folder:",__dirname);
-listFiles().then(()=>console.log("finished reading:",__dirname));
 
 
 const deletFileExcept = async (dir, exception) => {
@@ -112,14 +107,14 @@ app.use(cors({ origin: '*' }));
 app.use('/', express.static(path.resolve(runtimeDir, 'public')), serveIndex(path.resolve(runtimeDir, 'public'), { 'icons': true }));
 
 app.get('/author', (req, res) => {
-    res.json({ 
-        'author-name': 'Vikas Bhat D' 
+    res.json({
+        'author-name': 'Vikas Bhat D'
     });
 });
 
 deletFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
-.then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
-.then(() => server.listen(3000, () => {
-    console.log("Server listening on port 3000");
-    console.log("http://localhost:3000")
-}));
+    .then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
+    .then(() => server.listen(3000, () => {
+        console.log("Server listening on port 3000");
+        console.log("http://localhost:3000")
+    }));
