@@ -4,7 +4,8 @@
   "main": "server.js",
   "bin": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "pkg . --targets node18-win-x64 --output livereload.exe"
   },
   "author": "vikas-bhat-d",
   "license": "ISC",
@@ -18,10 +19,11 @@
     "nodemon": "^3.1.4",
     "serve-index": "^1.9.1",
     "socket.io": "^4.7.5",
+    "winston": "^3.15.0",
     "ws": "^8.18.0"
   },
   "pkg": {
-    "scripts": "index.js",
+    "scripts": "server.js",
     "assets": [
       "frontend/**/*"
     ]

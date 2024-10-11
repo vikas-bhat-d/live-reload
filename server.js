@@ -6,9 +6,26 @@ const path = require("path");
 const fs = require("fs");
 const serveIndex = require('serve-index');
 const {program}=require("commander")
+const winston=require("winston");
+const { log } = require("console");
 const app = express();
 
-console.log("Directory:", process.execPath);
+
+const logger = winston.createLogger({
+    level: 'info', // Log level
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.printf(({ timestamp, level, message }) => {
+            return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+        })
+    ),
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: 'app.log' })
+    ],
+});
+
+logger.info("Directory:", process.execPath);
 
 const runtimeDir = path.join(path.dirname(process.execPath), "runtime");
 
@@ -25,16 +42,15 @@ const port=parseInt(options.port);
 const filePath=path.resolve(process.cwd(),fpath);
 
 
-console.log("Listening for changes on: ", filePath);
-console.log("Runtime directory: ", runtimeDir);
+logger.info(`Listening for changes on: ${filePath}`);
+logger.info(`Runtime directory: ${runtimeDir}`);
 
 
 const deleteFileExcept = async (dir, exception) => {
     try {
+        logger.info(`deleting files from ${dir} ,except ${exception}`)
         const files = await fs.promises.readdir(dir);
-        console.log(files);
         for (const file of files) {
-            console.log("Filename: ", file);
             const filePath = path.resolve(dir, file);
             if (file !== exception) {
                 try {
@@ -51,9 +67,9 @@ const deleteFileExcept = async (dir, exception) => {
                 }
             }
         }
-        console.log("Files deleted successfully");
+        logger.info("Files deleted successfully");
     } catch (err) {
-        console.log("Error deleting the file: ", err);
+        logger.error("Error deleting the file: ", err);
     }
 };
 
@@ -64,7 +80,7 @@ const injectScript = async (htmlPath) => {
         data = data.replace('</body>', scriptToInject);
         await fs.promises.writeFile(htmlPath, data, 'utf-8');
     } catch (error) {
-        console.error("Error injecting script: ", error);
+        logger.error("Error injecting script: ", error);
     }
 };
 
@@ -87,6 +103,8 @@ const readAndStoreFiles = async (sourceDir, targetDir) => {
                 }
             }
         }
+
+        logger.info("Updated public directory with changed files succesfully..")
     } catch (error) {
         console.error("Error processing files: ", error);
     }
@@ -103,6 +121,7 @@ let flag = 0;
 fs.watch(filePath, { recursive: true }, async (eventType, filename) => {
     if (!flag) {
         flag = 1;
+        logger.info(`Change in ${filePath} detected..updating public directory..`)
         await readAndStoreFiles(filePath, path.resolve(runtimeDir, "public"));
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -125,17 +144,17 @@ app.get('/author', (req, res) => {
 deleteFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
     .then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
     .then(() => server.listen(port, () => {
-        console.log(`Server listening on port: ${port}`);
-        console.log(`http://localhost:${port}`)
+        logger.info(`Server listening on port: ${port}`);
+        logger.info(`URL: http://localhost:${port}`)
 }));
 
 const gracefulShutdown = async () => {
-    console.log("Shutting down server...");
+    logger.info("Shutting down server...");
     deleteFileExcept(path.resolve(runtimeDir,"public"),"socket.js")
     .then(()=>{
         wss.close(() => {
             server.close(() => {
-                console.log("Server closed.");
+                logger.info("Server closed.");
                 process.exit(0);
             });
         });
