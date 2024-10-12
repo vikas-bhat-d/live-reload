@@ -142,6 +142,7 @@ app.get('/author', (req, res) => {
     });
 });
 
+
 deleteFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
     .then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
     .then(() => server.listen(port, () => {
