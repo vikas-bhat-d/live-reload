@@ -4,13 +4,14 @@
   "main": "server.js",
   "bin": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node --no-deprecation server.js",
     "build": "pkg . --targets node18-win-x64 --output livereload.exe"
   },
   "author": "vikas-bhat-d",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "chalk": "^4.1.2",
     "commander": "^12.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

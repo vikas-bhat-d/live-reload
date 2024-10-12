@@ -9,6 +9,7 @@ const {program}=require("commander")
 const winston=require("winston");
 const { log } = require("console");
 const app = express();
+const chalk=require("chalk")
 
 
 const logger = winston.createLogger({
@@ -42,13 +43,13 @@ const port=parseInt(options.port);
 const filePath=path.resolve(process.cwd(),fpath);
 
 
-logger.info(`Listening for changes on: ${filePath}`);
+logger.info(chalk.hex('#038cfc')(`Listening for changes on: ${filePath}`));
 logger.info(`Runtime directory: ${runtimeDir}`);
 
 
 const deleteFileExcept = async (dir, exception) => {
     try {
-        logger.info(`deleting files from ${dir} ,except ${exception}`)
+        logger.info(`Deleting files from ${dir} ,except ${exception}`)
         const files = await fs.promises.readdir(dir);
         for (const file of files) {
             const filePath = path.resolve(dir, file);
@@ -103,8 +104,6 @@ const readAndStoreFiles = async (sourceDir, targetDir) => {
                 }
             }
         }
-
-        logger.info("Updated public directory with changed files succesfully..")
     } catch (error) {
         console.error("Error processing files: ", error);
     }
@@ -123,6 +122,7 @@ fs.watch(filePath, { recursive: true }, async (eventType, filename) => {
         flag = 1;
         logger.info(`Change in ${filePath} detected..updating public directory..`)
         await readAndStoreFiles(filePath, path.resolve(runtimeDir, "public"));
+        logger.info("Updated public directory with changed files succesfully..")
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send("reload");
@@ -137,24 +137,27 @@ app.use('/', express.static(path.resolve(runtimeDir, 'public')), serveIndex(path
 
 app.get('/author', (req, res) => {
     res.json({
-        'author-name': 'Vikas Bhat D'
+        'author-name': 'Vikas Bhat D',
+        'github':'https://github.com/vikas-bhat-d/',
+        'linkedin':'https://www.linkedin.com/in/vikas-bhat-d/'
     });
 });
 
 deleteFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
     .then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
     .then(() => server.listen(port, () => {
+        logger.info("Added the files from source directory to public directory")
         logger.info(`Server listening on port: ${port}`);
-        logger.info(`URL: http://localhost:${port}`)
+        logger.info(chalk.hex('#fcf803')(`URL: http://localhost:${port}`))
 }));
 
 const gracefulShutdown = async () => {
-    logger.info("Shutting down server...");
+    logger.info(chalk.hex('#fc0335')("Shutting down server..."));
     deleteFileExcept(path.resolve(runtimeDir,"public"),"socket.js")
     .then(()=>{
         wss.close(() => {
             server.close(() => {
-                logger.info("Server closed.");
+                logger.info(chalk.hex('#fc0335')("Server closed."));
                 process.exit(0);
             });
         });
