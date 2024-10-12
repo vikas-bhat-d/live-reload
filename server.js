@@ -7,7 +7,6 @@ const fs = require("fs");
 const serveIndex = require('serve-index');
 const {program}=require("commander")
 const winston=require("winston");
-const { log } = require("console");
 const app = express();
 const chalk=require("chalk")
 
