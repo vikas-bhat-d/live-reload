@@ -1,6 +1,5 @@
 const injectScript = function (port) {
   return (req, res, next) => {
-    console.log("middleware function called")
     const script = `
           <script>
             (function() {
@@ -31,11 +30,9 @@ const injectScript = function (port) {
 
     res.write = function (chunk, ...args) {
       chunks.push(Buffer.from(chunk));
-      console.log("modified res.write called")
     }
 
     res.end = function (chunk, ...args) {
-      console.log("modified res.end called")
       if (chunk)
         chunks.push(Buffer.from(chunk));
 

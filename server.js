@@ -47,9 +47,9 @@ logger.info(chalk.hex('#038cfc')(`Listening for changes on: ${filePath}`));
 logger.info(`Runtime directory: ${runtimeDir}`);
 
 
-const deleteFileExcept = async (dir, exception) => {
+const deleteFileExcept = async (dir, exception="none") => {
     try {
-        logger.info(`Deleting files from ${dir} ,except ${exception}`)
+        logger.info(`Cleaning public directory`)
         const files = await fs.promises.readdir(dir);
         for (const file of files) {
             const filePath = path.resolve(dir, file);
@@ -68,9 +68,9 @@ const deleteFileExcept = async (dir, exception) => {
                 }
             }
         }
-        logger.info("Files deleted successfully");
+        logger.info(`Cleaned the public directory`);
     } catch (err) {
-        logger.error("Error deleting the file: ", err);
+        logger.error("Error cleaning the public directory: ", err);
     }
 };
 
@@ -124,7 +124,6 @@ app.use(cors({ origin: '*' }));
 app.use('/', injectScript(port),express.static(path.resolve(runtimeDir, 'public')), serveIndex(path.resolve(runtimeDir, 'public'), { 'icons': true }));
 
 app.get('/author',injectScript(port), (req, res) => {
-    console.log("request recieved");
     res.json({
         'author-name': 'Vikas Bhat D',
         'github':'https://github.com/vikas-bhat-d/',
@@ -133,7 +132,7 @@ app.get('/author',injectScript(port), (req, res) => {
 })
 
 
-deleteFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
+deleteFileExcept(path.resolve(runtimeDir, "public"))
     .then(() => readAndStoreFiles(filePath, path.resolve(runtimeDir, "public")))
     .then(() => server.listen(port, () => {
         logger.info("Added the files from source directory to public directory")
@@ -143,11 +142,9 @@ deleteFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
 
 const gracefulShutdown = async () => {
     logger.info(chalk.hex('#fc0335')("Shutting down server..."));
-    deleteFileExcept(path.resolve(runtimeDir,"public"),"socket.js")
+    deleteFileExcept(path.resolve(runtimeDir,"public"))
     .then(()=>{
-        console.log("closing websocket connection")
         wss.close(() => {
-            console.log("websocket server closed")
             server.close(() => {
                 logger.info(chalk.hex('#fc0335')("Server closed."));
                 process.exit(0);
