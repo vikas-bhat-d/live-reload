@@ -7,9 +7,10 @@ const fs = require("fs");
 const serveIndex = require('serve-index');
 const {program}=require("commander")
 const winston=require("winston");
-const app = express();
 const chalk=require("chalk")
+const injectScript=require('./middleware/injectscript.middleware.js')
 
+const app = express();
 
 const logger = winston.createLogger({
     level: 'info', // Log level
@@ -73,16 +74,7 @@ const deleteFileExcept = async (dir, exception) => {
     }
 };
 
-const injectScript = async (htmlPath) => {
-    try {
-        let data = await fs.promises.readFile(htmlPath, 'utf-8');
-        const scriptToInject = "<!--Live reload script -->\n<script src='./socket.js'></script>\n</body>";
-        data = data.replace('</body>', scriptToInject);
-        await fs.promises.writeFile(htmlPath, data, 'utf-8');
-    } catch (error) {
-        logger.error("Error injecting script: ", error);
-    }
-};
+
 
 const readAndStoreFiles = async (sourceDir, targetDir) => {
     try {
@@ -98,9 +90,6 @@ const readAndStoreFiles = async (sourceDir, targetDir) => {
                 const data = await fs.promises.readFile(sourcePath, 'utf-8');
                 await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
                 await fs.promises.writeFile(targetPath, data);
-                if (path.extname(sourcePath) === '.html') {
-                    await injectScript(targetPath);
-                }
             }
         }
     } catch (error) {
@@ -132,15 +121,16 @@ fs.watch(filePath, { recursive: true }, async (eventType, filename) => {
 });
 
 app.use(cors({ origin: '*' }));
-app.use('/', express.static(path.resolve(runtimeDir, 'public')), serveIndex(path.resolve(runtimeDir, 'public'), { 'icons': true }));
+app.use('/', injectScript(port),express.static(path.resolve(runtimeDir, 'public')), serveIndex(path.resolve(runtimeDir, 'public'), { 'icons': true }));
 
-app.get('/author', (req, res) => {
+app.get('/author',injectScript(port), (req, res) => {
+    console.log("request recieved");
     res.json({
         'author-name': 'Vikas Bhat D',
         'github':'https://github.com/vikas-bhat-d/',
         'linkedin':'https://www.linkedin.com/in/vikas-bhat-d/'
-    });
-});
+    })
+})
 
 
 deleteFileExcept(path.resolve(runtimeDir, "public"), "socket.js")
@@ -155,7 +145,9 @@ const gracefulShutdown = async () => {
     logger.info(chalk.hex('#fc0335')("Shutting down server..."));
     deleteFileExcept(path.resolve(runtimeDir,"public"),"socket.js")
     .then(()=>{
+        console.log("closing websocket connection")
         wss.close(() => {
+            console.log("websocket server closed")
             server.close(() => {
                 logger.info(chalk.hex('#fc0335')("Server closed."));
                 process.exit(0);
