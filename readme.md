@@ -53,7 +53,6 @@
 
    - Create a folder named `runtime`.
    - Inside the `runtime` folder, create a subdirectory called `public`.
-   - Place the `socket.js` file inside the `public` directory.
 
    Your folder structure should look like this:
 
@@ -62,7 +61,6 @@
    ├── livereload.exe
    ├── runtime
        └── public
-           └── socket.js
    ```
    **runtime folder from this repository can be used**
 
@@ -96,8 +94,8 @@
 
 ## Requirements for Running `livereload.exe`
 
-- Ensure that the `runtime` directory and its subdirectory `public` (with `socket.js`) are in the same directory as `livereload.exe`.
-- The application will fail to run if the `runtime/public` folder or `socket.js` is missing.
+- Ensure that the `runtime` directory and its subdirectory `public` are in the same directory as `livereload.exe`.
+- The application will fail to run if the `runtime/public` folder is missing.
 
 ## Author
 
