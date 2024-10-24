@@ -104,6 +104,8 @@ wss.on('connection', (ws) => {
     ws.send("Live Reload script injected");
 });
 
+
+
 let flag = 0;
 fs.watch(filePath, { recursive: true }, async (eventType, filename) => {
     if (!flag) {
